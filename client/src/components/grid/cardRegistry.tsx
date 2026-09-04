@@ -66,3 +66,11 @@ export const CARD_TYPE_LABEL: Record<GridControl['type'], string> = {
   label: 'Label',
   shortcut: 'Shortcut',
 };
+
+// Strip Panel / Bus Panel have nothing worth editing after creation (just which
+// strip/bus, already chosen when added) — every other type gets a config dialog.
+const CONFIGURABLE_TYPES = new Set<GridControl['type']>(['fader', 'vu_meter', 'toggle', 'macro', 'label', 'shortcut']);
+
+export function hasConfigDialog(type: GridControl['type']): boolean {
+  return CONFIGURABLE_TYPES.has(type);
+}

@@ -1,32 +1,41 @@
-// The "+" add-card flow. Scoped deliberately small for this first pass: Strip Panel and
-// Bus Panel (each already composes a fader, mute, and — for strips — routing, so they're
-// the one-click-useful cards) plus Label. Standalone Fader/VU Meter/Toggle/Macro/Shortcut
-// cards render fine once a control for them exists in the layout — they just don't have
-// a quick-add entry yet, since Macro and Shortcut in particular need real config (which
-// params, which desktop action) that this app has no editor for yet. That's next, not
-// this pass — see .claude/design/ELEMENTS.md.
+// The "+" add-card flow. Strip Panel, Bus Panel, and Label add directly with no config
+// needed; Fader, VU Meter, Toggle, Macro, and Shortcut open CardConfigDialog first,
+// since a Fader/VU Meter/Toggle needs to know which channel, and Macro/Shortcut have no
+// sensible default at all.
 //
-// The menu itself is also a known, deliberate exception to "never hand-position an
-// overlay" (deckling-interface-polish/layering.md) — it's a plain absolutely-positioned
-// div, not a portalled/collision-aware Popover, because Base UI isn't in the project yet
-// (nothing built so far has needed it). Swap this for a real Popover once Base UI is
-// added for Settings/Dialog work, rather than letting a second hand-rolled overlay
-// pattern take root.
+// The menu itself is a known, deliberate exception to "never hand-position an overlay"
+// (deckling-interface-polish/layering.md) — it's a plain absolutely-positioned div, not
+// a portalled/collision-aware Popover, because Base UI wasn't in the project when this
+// was first written. Base UI is in the project now (dialog.tsx) — this is the next
+// thing that should become a real Popover rather than staying the second hand-rolled
+// overlay pattern.
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Panel } from '@/components/ui/panel';
+import { CardConfigDialog, type ConfigTarget } from '@/components/grid/CardConfigDialog';
 import { useLayoutStore } from '@/stores/useLayoutStore';
 import { STRIP_LABELS, BUS_LABELS } from '@/lib/vm';
+import type { CardType } from '@/lib/layout';
 import { cn } from '@/lib/utils';
 
 export function AddCardMenu() {
   const [open, setOpen] = useState(false);
+  const [creating, setCreating] = useState<ConfigTarget | null>(null);
   const addControl = useLayoutStore((s) => s.addControl);
 
-  function add(type: 'strip_panel' | 'bus_panel' | 'label', index: number) {
-    if (type === 'label') addControl('label', { text: 'Label' });
-    else addControl(type, { index });
+  function addDirect(type: 'strip_panel' | 'bus_panel', index: number) {
+    addControl(type, { index });
+    setOpen(false);
+  }
+
+  function addLabel() {
+    addControl('label', { text: 'Label' });
+    setOpen(false);
+  }
+
+  function openConfig(type: CardType) {
+    setCreating({ type });
     setOpen(false);
   }
 
@@ -45,23 +54,39 @@ export function AddCardMenu() {
         <Panel className="absolute right-0 top-12 z-(--z-dropdown) max-h-[70vh] w-56 overflow-y-auto p-1">
           <MenuSection title="Strip panels">
             {STRIP_LABELS.map((label, i) => (
-              <MenuItem key={label} onClick={() => add('strip_panel', i)}>
+              <MenuItem key={label} onClick={() => addDirect('strip_panel', i)}>
                 {label}
               </MenuItem>
             ))}
           </MenuSection>
           <MenuSection title="Bus panels">
             {BUS_LABELS.map((label, i) => (
-              <MenuItem key={label} onClick={() => add('bus_panel', i)}>
+              <MenuItem key={label} onClick={() => addDirect('bus_panel', i)}>
                 {label}
               </MenuItem>
             ))}
           </MenuSection>
+          <MenuSection title="Individual controls">
+            <MenuItem onClick={() => openConfig('fader')}>Fader…</MenuItem>
+            <MenuItem onClick={() => openConfig('vu_meter')}>VU meter…</MenuItem>
+            <MenuItem onClick={() => openConfig('toggle')}>Toggle…</MenuItem>
+          </MenuSection>
           <MenuSection title="Other">
-            <MenuItem onClick={() => add('label', 0)}>Label</MenuItem>
+            <MenuItem onClick={() => openConfig('macro')}>Macro…</MenuItem>
+            <MenuItem onClick={() => openConfig('shortcut')}>Shortcut…</MenuItem>
+            <MenuItem onClick={addLabel}>Label</MenuItem>
           </MenuSection>
         </Panel>
       )}
+
+      <CardConfigDialog
+        target={creating}
+        onClose={() => setCreating(null)}
+        onSave={(config) => {
+          if (creating) addControl(creating.type, config);
+          setCreating(null);
+        }}
+      />
     </div>
   );
 }

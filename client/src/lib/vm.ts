@@ -14,6 +14,15 @@ export const BUS_LABELS = ['A1', 'A2', 'A3', 'A4', 'A5', 'B1', 'B2', 'B3'];
 export const GAIN_MIN = -60;
 export const GAIN_MAX = 12;
 
+// Boolean param names per target — matches STRIP_BOOL_PARAMS/BUS_BOOL_PARAMS in
+// server/voicemeeter.js. Used to populate the Toggle card's config form.
+export const STRIP_BOOL_PARAMS = ['Mute', 'Solo', 'MC', 'A1', 'A2', 'A3', 'A4', 'A5', 'B1', 'B2', 'B3'];
+export const BUS_BOOL_PARAMS = ['Mute', 'EQ.on'];
+
+export function boolParamsFor(target: 'strip' | 'bus'): string[] {
+  return target === 'strip' ? STRIP_BOOL_PARAMS : BUS_BOOL_PARAMS;
+}
+
 export function stripParam(index: number, param: string): string {
   return `Strip[${index}].${param}`;
 }
