@@ -1,0 +1,113 @@
+@import "tailwindcss";
+@import "@fontsource-variable/inter";
+@import "@fontsource/jetbrains-mono/400.css";
+@import "@fontsource/jetbrains-mono/500.css";
+@import "@fontsource/jetbrains-mono/600.css";
+
+/*
+ * Design tokens — ported from WarStonks' ELEMENTS.md §5 as the starting palette.
+ * See .claude/design/ELEMENTS.md for the registry and the open accent-semantics decision.
+ * Components read these tokens; never a raw hex.
+ */
+@theme {
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", monospace;
+
+  /* Surfaces */
+  --color-bg-base: #0d0f14;
+  --color-bg-surface: #13161e;
+  --color-bg-panel: #171b24;
+  --color-bg-elevated: #1a1e2a;
+  --color-bg-overlay: #262c3c; /* overlays ONLY: tooltip, popover, menu, dialog */
+
+  /* Lines */
+  --color-line-subtle: #1c1f2b; /* divider between rows on one surface only — see surfaces.md */
+  --color-line: #242836;
+  --color-line-strong: #2e3344; /* card/object frames — the only one visible enough to be a frame */
+
+  /* Ink */
+  --color-ink: #e8eaf0;
+  --color-ink-soft: #c5cad6;
+  --color-ink-dim: #8b90a0;
+  --color-ink-faint: #4a4f62;
+
+  /* Accents — semantics proposed in ELEMENTS.md §5, not yet finalized */
+  --color-accent-green: #3dd68c;
+  --color-accent-red: #f04f58;
+  --color-accent-amber: #f0a030;
+  --color-accent-blue: #4a9eff;
+  --color-accent-purple: #8b6fff;
+
+  /* Layering scale — never write a raw z-index, see layering.md */
+  --z-raised: 10;
+  --z-nav: 20;
+  --z-dropdown: 30;
+  --z-overlay: 40;
+  --z-modal: 50;
+  --z-tooltip: 60;
+  --z-toast: 70;
+
+  /* Radii */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+
+  /* Semantic aliases so components adapted via shadcn need no colour edits */
+  --color-background: var(--color-bg-base);
+  --color-foreground: var(--color-ink);
+  --color-card: var(--color-bg-panel);
+  --color-card-foreground: var(--color-ink);
+  --color-popover: var(--color-bg-overlay);
+  --color-popover-foreground: var(--color-ink);
+  --color-primary: var(--color-accent-blue);
+  --color-primary-foreground: var(--color-bg-base);
+  --color-secondary: var(--color-bg-elevated);
+  --color-secondary-foreground: var(--color-ink);
+  --color-muted: var(--color-bg-elevated);
+  --color-muted-foreground: var(--color-ink-dim);
+  --color-accent: var(--color-bg-elevated);
+  --color-accent-foreground: var(--color-ink);
+  --color-destructive: var(--color-accent-red);
+  --color-destructive-foreground: var(--color-ink);
+  --color-border: var(--color-line);
+  --color-input: var(--color-line);
+  --color-ring: var(--color-accent-blue);
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* touch app, not a document: no rubber-band scroll on the page shell */
+    overscroll-behavior: none;
+  }
+
+  body {
+    line-height: normal; /* against Tailwind preflight's 1.5 — every dense row is tuned against this */
+    background-color: var(--color-bg-base);
+    color: var(--color-ink);
+  }
+
+  /* Reduced motion — see deckling-interface-polish/motion.md for the live-meter exception,
+     which is implemented as a direct value write with no transition, so it has nothing here
+     to neutralise in the first place. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer base {
+  :root {
+    --shadow-border: 0 0 0 1px rgba(255, 255, 255, 0.08);
+    --shadow-border-hover: 0 0 0 1px rgba(255, 255, 255, 0.13);
+    --shadow-float: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  }
+}

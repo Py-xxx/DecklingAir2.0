@@ -1,0 +1,36 @@
+{
+  "name": "decklingair-server",
+  "private": true,
+  "version": "0.1.0",
+  "description": "DecklingAir server — runs locally on the PC it controls (VoiceMeeter, desktop shortcuts); other devices connect over the LAN via this PC's IP and port",
+  "main": "index.js",
+  "bin": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "dist:exe": "npx pkg . --output dist/DecklingAir.exe"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "koffi": "^2.9.0",
+    "png-to-ico": "^2.1.8",
+    "pngjs": "^7.0.0",
+    "screenshot-desktop": "^1.15.0",
+    "socket.io": "^4.8.0",
+    "systray2": "^3.0.0"
+  },
+  "devDependencies": {
+    "@yao-pkg/pkg": "^6.0.0",
+    "nodemon": "^3.1.0"
+  },
+  "pkg": {
+    "targets": ["node20-win-x64"],
+    "outputPath": "dist",
+    "assets": [
+      "public/**/*",
+      "node_modules/koffi/**/*",
+      "node_modules/screenshot-desktop/**/*",
+      "node_modules/systray2/**/*"
+    ]
+  }
+}
