@@ -8,7 +8,14 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const { PNG } = require('pngjs');
-const pngToIco = require('png-to-ico');
+// png-to-ico ships as an ESM-only package ("type": "module") — the rest of this server
+// is CommonJS, so it can't be `require()`'d directly. A dynamic import() from CJS works
+// fine for consuming an ESM dependency; it just has to be awaited inside an async
+// function rather than required at the top of the file.
+async function loadPngToIco() {
+  const mod = await import('png-to-ico');
+  return mod.default;
+}
 
 // Written to the OS temp dir, not next to this file — when packaged with pkg, this
 // module's own directory lives inside a read-only virtual filesystem, so anything we
@@ -48,6 +55,7 @@ async function ensureTrayIcon() {
   if (fs.existsSync(ICO_PATH)) return ICO_PATH;
   fs.mkdirSync(CACHE_DIR, { recursive: true });
   fs.writeFileSync(PNG_PATH, drawIconPng());
+  const pngToIco = await loadPngToIco();
   const icoBuffer = await pngToIco(PNG_PATH); // takes a file path, not a Buffer
   fs.writeFileSync(ICO_PATH, icoBuffer);
   return ICO_PATH;
