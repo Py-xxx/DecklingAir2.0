@@ -56,17 +56,25 @@ const STRIP_LEVELS_BASE = 0;
 const BUS_LEVELS_BASE = 16;
 const BUS_CHANNELS = 8;
 
-export function stripLevel(levels: number[], index: number): number {
+export function stripLevelStereo(levels: number[], index: number): [number, number] {
   const l = levels[STRIP_LEVELS_BASE + index * 2] ?? 0;
-  const r = levels[STRIP_LEVELS_BASE + index * 2 + 1] ?? 0;
-  return Math.max(l, r);
+  const r = levels[STRIP_LEVELS_BASE + index * 2 + 1] ?? l;
+  return [l, r];
+}
+
+export function busLevelStereo(levels: number[], index: number): [number, number] {
+  const base = BUS_LEVELS_BASE + index * BUS_CHANNELS;
+  const l = levels[base] ?? 0;
+  const r = levels[base + 1] ?? l;
+  return [l, r];
+}
+
+export function stripLevel(levels: number[], index: number): number {
+  return Math.max(...stripLevelStereo(levels, index));
 }
 
 export function busLevel(levels: number[], index: number): number {
-  const base = BUS_LEVELS_BASE + index * BUS_CHANNELS;
-  const l = levels[base] ?? 0;
-  const r = levels[base + 1] ?? 0;
-  return Math.max(l, r);
+  return Math.max(...busLevelStereo(levels, index));
 }
 
 // Linear amplitude -> 0..1 UI fill, roughly matching a -60..0dB meter scale (VoiceMeeter's
@@ -79,4 +87,26 @@ export function levelToFill(linear: number): number {
 
 export function isClipping(linear: number): boolean {
   return linear >= 1.0;
+}
+
+export function linearToDb(linear: number): number {
+  return linear > 0 ? 20 * Math.log10(linear) : -Infinity;
+}
+
+export function formatDbOrNegInf(db: number): string {
+  if (!Number.isFinite(db) || db <= -60) return '-∞';
+  return formatDb(db);
+}
+
+// Discrete LED-style segment count, matching the reference app's meter exactly: a wider
+// -60..+6dB range (66, not 60) than the fader's own -60..12 scale, so the meter has a
+// little headroom above 0dB before every segment is lit.
+export const VU_SEGMENT_COUNT = 24;
+export const VU_SEGMENT_YELLOW = 18;
+export const VU_SEGMENT_RED = 22;
+
+export function litSegments(linear: number, segments = VU_SEGMENT_COUNT): number {
+  const db = linearToDb(linear);
+  const norm = Math.min(1, Math.max(0, (db + 60) / 66));
+  return Math.round(norm * segments);
 }

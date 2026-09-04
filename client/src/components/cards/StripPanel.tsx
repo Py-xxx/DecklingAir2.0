@@ -1,14 +1,15 @@
-// A full input channel strip — fader, mute, and bus routing toggles (A1-A5/B1-B3). The
+// A full input channel strip — fader (with an integrated VU column, matching the
+// reference app's fader widget), mute, and bus routing toggles (A1-A5/B1-B3). The
 // routing chips are a 4-column grid rather than one row of 8, specifically so each chip
 // still clears the 40px touch floor at the card's default width — see
 // deckling-interface-polish/surfaces.md, which allows no density exception for a control
 // the user directly touches.
 import { Panel, PanelBody, PanelHeader, PanelTitle } from '@/components/ui/panel';
-import { Switch } from '@/components/ui/switch';
+import { MuteButton } from '@/components/cards/MuteButton';
 import { FaderTrack, useFaderDrag } from '@/components/cards/FaderTrack';
 import { useVoiceMeeterStore } from '@/stores/useVoiceMeeterStore';
 import { vmSet } from '@/lib/socket';
-import { BUS_LABELS, formatDb, readBool, readFloat, stripParam } from '@/lib/vm';
+import { BUS_LABELS, formatDb, readBool, readFloat, stripLevelStereo, stripParam } from '@/lib/vm';
 import type { StripPanelConfig } from '@/lib/layout';
 import { cn } from '@/lib/utils';
 
@@ -39,6 +40,7 @@ export function StripPanel({ config, title }: { config: StripPanelConfig; title:
   const serverDb = useVoiceMeeterStore((s) => readFloat(s.state, gainParam, 0));
   const muted = useVoiceMeeterStore((s) => readBool(s.state, muteParam));
   const connected = useVoiceMeeterStore((s) => s.status.connected);
+  const levels = useVoiceMeeterStore((s) => stripLevelStereo(s.levels, config.index));
   const { db, ratio, handlers } = useFaderDrag(gainParam, serverDb, connected);
 
   return (
@@ -48,11 +50,8 @@ export function StripPanel({ config, title }: { config: StripPanelConfig; title:
         <span className="font-mono text-xs tabular-nums text-ink-soft">{formatDb(db)}</span>
       </PanelHeader>
       <PanelBody className="gap-2">
-        <div className="flex items-center justify-between">
-          <span className="font-mono text-[11px] uppercase tracking-wider text-ink-dim">Mute</span>
-          <Switch checked={muted} onCheckedChange={(v) => vmSet(muteParam, v ? 1 : 0)} tone="danger" disabled={!connected} />
-        </div>
-        <FaderTrack db={db} ratio={ratio} handlers={handlers} connected={connected} label={title} />
+        <FaderTrack db={db} ratio={ratio} handlers={handlers} connected={connected} label={title} levels={levels} />
+        <MuteButton param={muteParam} muted={muted} connected={connected} />
         <div className="grid grid-cols-4 gap-1.5">
           {ROUTE_PARAMS.map((p, i) => (
             <RouteChip key={p} param={stripParam(config.index, p)} label={BUS_LABELS[i] ?? p} connected={connected} />
